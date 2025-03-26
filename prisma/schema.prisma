@@ -10,16 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Cliente {
   id        Int      @id @default(autoincrement())
   nome      String
   email     String
   telefone  String
   veiculo   String?
-  nota      String?
+  vendedorId Int
+  vendedor  Vendedor @relation(fields: [vendedorId], references: [id])
   etapa     Etapa    @default(NOVO)
   criadoEm  DateTime @default(now())
+  vendas    Vendas[] // relação 1:n
+  ligacoes  Ligacoes[]
 }
 
 enum Etapa {
@@ -28,4 +30,55 @@ enum Etapa {
   RETORNO
   VENDIDO
   PERDIDO
+}
+
+model Veiculo {
+  id           Int      @id @default(autoincrement())
+  marca        String
+  modelo       String
+  ano          Int
+  placa        String   @unique
+  vendas       Vendas[]
+}
+
+model Vendas {
+  id         Int      @id @default(autoincrement())
+  clienteId  Int
+  cliente    Cliente  @relation(fields: [clienteId], references: [id])
+  status     Status @default(NOVO)
+  veiculoId  Int
+  veiculo    Veiculo @relation(fields: [veiculoId], references: [id])
+  valor      String
+}
+
+enum Status {
+  NOVO
+  VENDIDO
+  PERDIDO
+  NEGOCIACAO
+  RETORNO
+}
+
+model Notas {
+  id               Int @id @default(autoincrement())
+  title            String
+  content          String
+}
+
+model Vendedor{
+  id          Int @id @default(autoincrement())
+  name        String
+  email       String @unique
+  telefone    String
+  clientes    Cliente[]
+  ligacoes    Ligacoes[]
+}
+
+model Ligacoes{
+  id      Int @id @default(autoincrement())
+  clientId Int
+  client   Cliente @relation(fields: [clientId], references: [id])
+  vendedorId Int
+  vendedor Vendedor @relation(fields: [vendedorId], references: [id])
+  data    String
 }
