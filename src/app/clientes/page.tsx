@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ export default function Clientes() {
     veiculo: "",
     nota: "",
   });
+const [editandoId, setEditandoId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchClientes();
@@ -62,7 +64,23 @@ export default function Clientes() {
     }
   }
 
+  async function handleDelete(id: number) {
+    await fetch(`/api/clientes/${id}`, {
+      method: "DELETE",
+    });
+    fetchClientes();
+  }
 
+  function preencherFormulario(cliente: Cliente) {
+    setForm({
+      nome: cliente.nome,
+      email: cliente.email,
+      telefone: cliente.telefone,
+      veiculo: cliente.veiculo || "",
+      nota: cliente.nota || "",
+    });
+    setEditandoId(cliente.id);
+  }
   return (
     <main className="min-h-screen w-full bg-zinc-900 text-green-500 px-6 py-12 flex flex-col items-center">
         <section className='text-center text-5xl max-w-3xl'>
@@ -117,6 +135,22 @@ export default function Clientes() {
                 <TableCell className="text-zinc-300">{cliente.telefone}</TableCell>
                 <TableCell className="text-zinc-300">{cliente.veiculo || "-"}</TableCell>
                 <TableCell className="text-zinc-300">{cliente.nota || "-"}</TableCell>
+                 <TableCell className="text-zinc-300 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => preencherFormulario(cliente)}
+                >
+                  Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(cliente.id)}
+                >
+                  Excluir
+                </Button>
+              </TableCell>
             </TableRow>
             ))}
         </TableBody>
