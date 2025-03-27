@@ -69,10 +69,8 @@ export default function Clientes() {
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/clientes`, {
+    await fetch(`/api/clientes/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
     });
     fetchClientes();
   }
