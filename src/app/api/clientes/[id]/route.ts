@@ -13,38 +13,26 @@ export async function GET(
     return NextResponse.json(cliente);
 }
 
-export async function PUT(req: Request) {
-  try {
+export async function PUT(
+  req: Request, 
+  {params}: {params: {id: string}}
+) {
+
     const data = await req.json();
-    const { id, vendedorId, ...updateData } = data;
-
-    if (vendedorId !== undefined) {
-      updateData.vendedorId = Number(vendedorId);
-    }
-
     const clienteAtualizado = await prisma.cliente.update({
-      where: { id: Number(id) },
-      data: updateData,
-    });
-
+    where:{id: Number(params.id)},
+    data,
+   })
     return NextResponse.json(clienteAtualizado);
-  } catch (error) {
-    console.error('Erro ao atualizar cliente:', error);
-    return NextResponse.json({ error: 'Erro ao atualizar cliente' }, { status: 500 });
-  }
 }
 
-export async function DELETE(req: Request) {
-  try {
-    const { id } = await req.json();
-
+export async function DELETE(
+  _req: Request,
+  {params}: {params: {id: string}}
+) {
     await prisma.cliente.delete({
-      where: { id: Number(id) },
+      where: { id: Number(params.id) },
     });
 
     return NextResponse.json({ message: 'Cliente deletado com sucesso' });
-  } catch (error) {
-    console.error('Erro ao deletar cliente:', error);
-    return NextResponse.json({ error: 'Erro ao deletar cliente' }, { status: 500 });
-  }
 }
