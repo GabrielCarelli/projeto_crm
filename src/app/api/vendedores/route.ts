@@ -19,3 +19,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Erro interno ao criar vendedor' }, { status: 500 });
   }
 }
+export async function GET() {
+  try {
+    const veiculos = await prisma.vendedor.findMany({
+    });
+    return NextResponse.json(veiculos);
+  } catch (error) {
+    console.error('Erro ao buscar veículos:', error);
+    return NextResponse.json({ error: 'Erro ao buscar veículos' }, { status: 500 });
+  }
+}
