@@ -2,14 +2,36 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import React, { useState } from 'react';
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import React, { useEffect, useState } from 'react';
+interface Vendedor{
+  id: number;
+  name: string;
+  email: string;
+  telefone: string;
+}
 export default function Vendedor() {
   const [form, setForm] = useState({
     name: '',
     email: '',
     telefone: '',
   });
+  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
+
+  useEffect(() =>{
+    fetchVendedores();
+  }, []);
+
+  async function fetchVendedores(){
+    try{
+      const res = await fetch('/api/vendedores');
+      if(!res.ok) throw new Error(`Erro ao buscar vendedores: ${res.status}`);
+      const data = await res.json();
+      setVendedores(data);
+    } catch(error){
+      console.error('erro ao buscar vendedores: ', error)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,6 +74,25 @@ export default function Vendedor() {
           <Button type="submit">Cadastrar Vendedor</Button>
         </form>
       </section>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Telefone</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {vendedores.map((vendedor) => (
+            <TableRow key={vendedor.id}>
+              <TableCell>{vendedor.id}</TableCell>
+              <TableCell>{vendedor.name}</TableCell>
+              <TableCell>{vendedor.email}</TableCell>
+              <TableCell>{vendedor.telefone}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </main>
   );
 }

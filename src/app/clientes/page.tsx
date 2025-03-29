@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 interface Cliente {
   id: number;
   nome: string;
@@ -89,18 +90,32 @@ export default function Clientes() {
 
   return (
     <main className="min-h-screen w-full bg-zinc-900 text-green-500 px-6 py-12 flex flex-col items-center">
-      <section className='text-center text-5xl max-w-3xl'>
+      <section className='text-center text-5xl max-w-3xl flex justify-between items-center'>
         <h1 className='text-green-500 font-bold mb-6 leading-tight'>Clientes</h1>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="ml-[45rem] border-green-500 text-green-500 hover:bg-green-500 hover:text-zinc-100 rounded-2xl">
+              Criar novo cliente
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-zinc-800 text-white">
+            <DialogHeader>
+              <DialogTitle>Registrar novo cliente</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+            <form onSubmit={handleSubmit} className="grid gap-4 mb-12 max-w-xl">
+              <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+              <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+              <Input placeholder="Veículo" value={form.veiculo} onChange={(e) => setForm({ ...form, veiculo: e.target.value })} />
+              <Input placeholder="Vendedor ID" value={form.vendedorId} type="number" onChange={(e) => setForm({ ...form, vendedorId: Number(e.target.value) })} />
+              <Input placeholder="Etapa" value={form.etapa} onChange={(e) => setForm({ ...form, etapa: e.target.value })} />
+              <Button type="submit">{editandoId ? 'Atualizar Cliente' : 'Registrar Cliente'}</Button>
+            </form>
+            </div>
+          </DialogContent>
+        </Dialog>
       </section>
-      <form onSubmit={handleSubmit} className="grid gap-4 mb-12 max-w-xl">
-        <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-        <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-        <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
-        <Input placeholder="Veículo" value={form.veiculo} onChange={(e) => setForm({ ...form, veiculo: e.target.value })} />
-        <Input placeholder="Vendedor ID" value={form.vendedorId} type="number" onChange={(e) => setForm({ ...form, vendedorId: Number(e.target.value) })} />
-        <Input placeholder="Etapa" value={form.etapa} onChange={(e) => setForm({ ...form, etapa: e.target.value })} />
-        <Button type="submit">{editandoId ? 'Atualizar Cliente' : 'Registrar Cliente'}</Button>
-      </form>
       <section className="w-full">
         <Table className="bg-zinc-800 border border-zinc-700 rounded-lg">
           <TableHeader>
