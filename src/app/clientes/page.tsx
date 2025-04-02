@@ -1,19 +1,11 @@
-
 "use client";
 
+import React, { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import React, { useEffect, useState } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
 interface Cliente {
   id: number;
   nome: string;
@@ -24,16 +16,18 @@ interface Cliente {
   etapa?: string;
 }
 
+const initialFormState = {
+  nome: '',
+  email: '',
+  telefone: '',
+  veiculo: '',
+  vendedorId: 0,
+  etapa: 'NOVO',
+};
+
 export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [form, setForm] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    veiculo: '',
-    vendedorId: 0,
-    etapa: 'NOVO',
-  });
+  const [form, setForm] = useState(initialFormState);
   const [editandoId, setEditandoId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -51,32 +45,31 @@ export default function Clientes() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const url = editandoId ? `/api/clientes` : '/api/clientes';
+    const url = '/api/clientes';
     const method = editandoId ? 'PUT' : 'POST';
+    const payload = editandoId ? { id: editandoId, ...form } : form;
 
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editandoId ? { id: editandoId, ...form } : form),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
-      setForm({ nome: '', email: '', telefone: '', veiculo: '', vendedorId: 0, etapa: 'NOVO' });
+      setForm(initialFormState);
       setEditandoId(null);
       fetchClientes();
     }
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/clientes/${id}`, {
-      method: 'DELETE',
-    });
+    await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
     fetchClientes();
   }
 
-  function preencherFormulario(cliente: Cliente) {
+  function handleEdit(cliente: Cliente) {
     setForm({
       nome: cliente.nome,
       email: cliente.email,
@@ -88,63 +81,114 @@ export default function Clientes() {
     setEditandoId(cliente.id);
   }
 
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setForm({
+      ...form,
+      [name]: name === 'vendedorId' ? Number(value) : value,
+    });
+  }
+
   return (
-    <main className="min-h-screen w-full bg-zinc-900 text-green-500 px-6 py-12 flex flex-col items-center">
-      <section className='text-center text-5xl max-w-3xl flex justify-between items-center'>
-        <h1 className='text-green-500 font-bold mb-6 leading-tight'>Clientes</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="ml-[45rem] border-green-500 text-green-500 hover:bg-green-500 hover:text-zinc-100 rounded-2xl">
-              Criar novo cliente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-zinc-800 text-white">
-            <DialogHeader>
-              <DialogTitle>Registrar novo cliente</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-            <form onSubmit={handleSubmit} className="grid gap-4 mb-12 max-w-xl">
-              <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-              <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
-              <Input placeholder="Veículo" value={form.veiculo} onChange={(e) => setForm({ ...form, veiculo: e.target.value })} />
-              <Input placeholder="Vendedor ID" value={form.vendedorId} type="number" onChange={(e) => setForm({ ...form, vendedorId: Number(e.target.value) })} />
-              <Input placeholder="Etapa" value={form.etapa} onChange={(e) => setForm({ ...form, etapa: e.target.value })} />
-              <Button type="submit">{editandoId ? 'Atualizar Cliente' : 'Registrar Cliente'}</Button>
-            </form>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </section>
-      <section className="w-full">
-        <Table className="bg-zinc-800 border border-zinc-700 rounded-lg">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-zinc-100">Nome</TableHead>
-              <TableHead className="text-zinc-100">Email</TableHead>
-              <TableHead className="text-zinc-100">Telefone</TableHead>
-              <TableHead className="text-zinc-100">Veículo</TableHead>
-              <TableHead className="text-zinc-100">Etapa</TableHead>
-              <TableHead className="text-zinc-100">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clientes.map((cliente) => (
-              <TableRow key={cliente.id} className="hover:bg-zinc-700/30">
-                <TableCell className="text-zinc-300">{cliente.nome}</TableCell>
-                <TableCell className="text-zinc-300">{cliente.email}</TableCell>
-                <TableCell className="text-zinc-300">{cliente.telefone}</TableCell>
-                <TableCell className="text-zinc-300">{cliente.veiculo || '-'}</TableCell>
-                <TableCell className="text-zinc-300">{cliente.etapa}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => preencherFormulario(cliente)}>Editar</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(cliente.id)}>Excluir</Button>
-                </TableCell>
+    <main className="min-h-screen bg-gray-100 text-gray-900 p-8">
+      <div className="container mx-auto">
+        <header className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold mb-4 sm:mb-0">Clientes</h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg">
+                Criar novo cliente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white text-gray-900 p-6 rounded-lg">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-semibold mb-4">Registrar novo cliente</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  placeholder="Nome"
+                  name="nome"
+                  value={form.nome}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Input
+                  placeholder="Email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Input
+                  placeholder="Telefone"
+                  name="telefone"
+                  value={form.telefone}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Input
+                  placeholder="Veículo"
+                  name="veiculo"
+                  value={form.veiculo}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Input
+                  placeholder="Vendedor ID"
+                  name="vendedorId"
+                  type="number"
+                  value={form.vendedorId}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Input
+                  placeholder="Etapa"
+                  name="etapa"
+                  value={form.etapa}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <Button type="submit" className="w-full">
+                  {editandoId ? 'Atualizar Cliente' : 'Registrar Cliente'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </header>
+        <section>
+          <Table className="bg-white shadow-md rounded-lg overflow-hidden">
+            <TableHeader className="bg-gray-200">
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Veículo</TableHead>
+                <TableHead>Etapa</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </section>
+            </TableHeader>
+            <TableBody>
+              {clientes.map((cliente) => (
+                <TableRow key={cliente.id} className="hover:bg-gray-100">
+                  <TableCell>{cliente.nome}</TableCell>
+                  <TableCell>{cliente.email}</TableCell>
+                  <TableCell>{cliente.telefone}</TableCell>
+                  <TableCell>{cliente.veiculo || '-'}</TableCell>
+                  <TableCell>{cliente.etapa}</TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => handleEdit(cliente)}>
+                      Editar
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(cliente.id)}>
+                      Excluir
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
+      </div>
     </main>
   );
 }

@@ -23,7 +23,7 @@ export default function Home() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full max-w-5xl">
         <Card className="bg-zinc-800 border-zinc-700">
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-2">Funil de Vendas</h2>
+            <h2 className="text-2xl font-semibold mb-2 text-white">Funil de Vendas</h2>
             <p className="text-zinc-400">
               Visualize claramente cada etapa da negociação e acompanhe seus leads até a conversão.
             </p>
@@ -32,7 +32,7 @@ export default function Home() {
 
         <Card className="bg-zinc-800 border-zinc-700">
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-2">Gestão de Clientes</h2>
+            <h2 className="text-2xl font-semibold mb-2 text-white">Gestão de Clientes</h2>
             <p className="text-zinc-400">
               Tenha controle total sobre os dados dos seus clientes e histórico de interações.
             </p>
@@ -41,7 +41,7 @@ export default function Home() {
 
         <Card className="bg-zinc-800 border-zinc-700">
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-2">Tarefas e Lembretes</h2>
+            <h2 className="text-2xl font-semibold mb-2 text-white">Tarefas e Lembretes</h2>
             <p className="text-zinc-400">
               Nunca perca uma oportunidade com agendamentos e alertas integrados.
             </p>
