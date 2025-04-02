@@ -3,8 +3,21 @@
 import React, { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface Cliente {
   id: number;
@@ -16,22 +29,39 @@ interface Cliente {
   etapa?: string;
 }
 
+interface Vendedor {
+  id: number;
+  name: string;
+}
+
+interface Veiculo {
+  id: string;
+  marca: string;
+  modelo: string;
+}
+
 const initialFormState = {
   nome: '',
   email: '',
   telefone: '',
   veiculo: '',
-  vendedorId: 0,
+  vendedorId: '', 
   etapa: 'NOVO',
 };
 
 export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [form, setForm] = useState(initialFormState);
+  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
+  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [editandoId, setEditandoId] = useState<number | null>(null);
+
+  const regexTelefone = /^\(?\d{2}\)?\s?9\d{4}-?\d{4}$/;
 
   useEffect(() => {
     fetchClientes();
+    fetchVendedores();
+    fetchVeiculos();
   }, []);
 
   async function fetchClientes() {
@@ -45,64 +75,105 @@ export default function Clientes() {
     }
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const url = '/api/clientes';
-    const method = editandoId ? 'PUT' : 'POST';
-    const payload = editandoId ? { id: editandoId, ...form } : form;
-
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      setForm(initialFormState);
-      setEditandoId(null);
-      fetchClientes();
+  async function fetchVendedores() {
+    try {
+      const res = await fetch('/api/vendedores');
+      if (!res.ok) throw new Error(`Erro ao buscar vendedores: ${res.status}`);
+      const data = await res.json();
+      setVendedores(data);
+    } catch (error) {
+      console.error('Erro ao buscar vendedores:', error);
     }
   }
 
-  async function handleDelete(id: number) {
-    await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
-    fetchClientes();
+  async function fetchVeiculos() {
+    try {
+      const res = await fetch('/api/veiculos');
+      if (!res.ok) throw new Error(`Erro ao buscar veículos: ${res.status}`);
+      const data = await res.json();
+      setVeiculos(data);
+    } catch (error) {
+      console.error('Erro ao buscar veículos:', error);
+    }
   }
 
-  function handleEdit(cliente: Cliente) {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!regexTelefone.test(form.telefone)) {
+      alert('Por favor, insira um número de celular válido no formato (XX) 9XXXX-XXXX.');
+      return;
+    }
+
+    const payload = {
+      ...form,
+      vendedorId: Number(form.vendedorId),
+    };
+
+    const url = '/api/clientes';
+    const method = editandoId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editandoId ? { id: editandoId, ...payload } : payload),
+      });
+      if (res.ok) {
+        setForm(initialFormState);
+        setEditandoId(null);
+        fetchClientes();
+      }
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
+    }
+  }
+
+  const handleEdit = (cliente: Cliente) => {
     setForm({
       nome: cliente.nome,
       email: cliente.email,
       telefone: cliente.telefone,
       veiculo: cliente.veiculo || '',
-      vendedorId: cliente.vendedorId,
+      vendedorId: String(cliente.vendedorId),
       etapa: cliente.etapa || 'NOVO',
     });
     setEditandoId(cliente.id);
-  }
+  };
 
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target;
-    setForm({
-      ...form,
-      [name]: name === 'vendedorId' ? Number(value) : value,
-    });
+  async function handleDelete(id: number) {
+    try {
+      await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+      fetchClientes();
+    } catch (error) {
+      console.error('Erro ao deletar cliente:', error);
+    }
   }
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-900 p-8">
       <div className="container mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 sm:mb-0">Clientes</h1>
+          <h1 className="text-4xl font-bold">Clientes</h1>
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg">
-                Criar novo cliente
+              <Button
+                variant="outline"
+                className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg"
+              >
+                Registrar novo cliente
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white text-gray-900 p-6 rounded-lg">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-semibold mb-4">Registrar novo cliente</DialogTitle>
+                <DialogTitle className="text-2xl font-semibold mb-4">
+                  Registrar novo cliente
+                </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
@@ -120,34 +191,38 @@ export default function Clientes() {
                   className="w-full"
                 />
                 <Input
-                  placeholder="Telefone"
+                  placeholder="Telefone (XX) 9XXXX-XXXX"
                   name="telefone"
                   value={form.telefone}
                   onChange={handleChange}
                   className="w-full"
                 />
-                <Input
-                  placeholder="Veículo"
+                <select
                   name="veiculo"
                   value={form.veiculo}
                   onChange={handleChange}
-                  className="w-full"
-                />
-                <Input
-                  placeholder="Vendedor ID"
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Selecione um veículo</option>
+                  {veiculos.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.marca} {v.modelo}
+                    </option>
+                  ))}
+                </select>
+                <select
                   name="vendedorId"
-                  type="number"
                   value={form.vendedorId}
                   onChange={handleChange}
-                  className="w-full"
-                />
-                <Input
-                  placeholder="Etapa"
-                  name="etapa"
-                  value={form.etapa}
-                  onChange={handleChange}
-                  className="w-full"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Selecione um vendedor</option>
+                  {vendedores.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
                 <Button type="submit" className="w-full">
                   {editandoId ? 'Atualizar Cliente' : 'Registrar Cliente'}
                 </Button>
@@ -163,18 +238,20 @@ export default function Clientes() {
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Veículo</TableHead>
-                <TableHead>Etapa</TableHead>
+                <TableHead>Vendedor</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientes.map((cliente) => (
+              {clientes.map(cliente => (
                 <TableRow key={cliente.id} className="hover:bg-gray-100">
                   <TableCell>{cliente.nome}</TableCell>
                   <TableCell>{cliente.email}</TableCell>
                   <TableCell>{cliente.telefone}</TableCell>
                   <TableCell>{cliente.veiculo || '-'}</TableCell>
-                  <TableCell>{cliente.etapa}</TableCell>
+                  <TableCell>
+                    {vendedores.find(v => v.id === cliente.vendedorId)?.name || '-'}
+                  </TableCell>
                   <TableCell className="flex gap-2">
                     <Button size="sm" variant="secondary" onClick={() => handleEdit(cliente)}>
                       Editar
