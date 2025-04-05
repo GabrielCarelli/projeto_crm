@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -9,18 +9,18 @@ export async function GET() {
         vendas: { include: { veiculo: true } },
         ligacoes: true,
       },
-      orderBy: { criadoEm: 'desc' },
+      orderBy: { criadoEm: "desc" },
     });
     return NextResponse.json(clientes);
   } catch (error) {
-    console.error('Erro ao buscar clientes:', error);
-    return NextResponse.json({ error: 'Erro ao buscar clientes' }, { status: 500 });
+    console.error("Erro ao buscar clientes:", error);
+    return NextResponse.json({ error: "Erro ao buscar clientes" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
+    const data = await request.json();
     const novoCliente = await prisma.cliente.create({
       data: {
         nome: data.nome,
@@ -28,15 +28,14 @@ export async function POST(req: Request) {
         telefone: data.telefone,
         veiculo: data.veiculo,
         vendedorId: Number(data.vendedorId),
-        etapa: data.etapa || 'NOVO',
+        etapa: data.etapa || "NOVO",
         vendas: data.vendas ? { create: data.vendas } : undefined,
         ligacoes: data.ligacoes ? { create: data.ligacoes } : undefined,
       },
     });
     return NextResponse.json(novoCliente, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar cliente:', error);
-    return NextResponse.json({ error: 'Erro ao criar cliente' }, { status: 500 });
+    console.error("Erro ao criar cliente:", error);
+    return NextResponse.json({ error: "Erro ao criar cliente" }, { status: 500 });
   }
 }
-
