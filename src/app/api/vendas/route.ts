@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
@@ -8,8 +8,9 @@ export async function GET() {
         cliente: true,
         veiculo: true,
       },
-      orderBy: { id: 'desc' },
+      orderBy: { id: "desc" },
     });
+
     return NextResponse.json(vendas);
   } catch (error) {
     console.error("Erro ao buscar vendas:", error);
@@ -17,17 +18,19 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
+    const data = await request.json();
+
     const novaVenda = await prisma.vendas.create({
       data: {
         clienteId: Number(data.clienteId),
         veiculoId: Number(data.veiculoId),
-        status: data.status || "NOVO", // Se não informado, usa o valor padrão "NOVO"
+        status: data.status || "NOVO",
         valor: data.valor,
       },
     });
+
     return NextResponse.json(novaVenda, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar venda:", error);
